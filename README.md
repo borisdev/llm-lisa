@@ -1,4 +1,4 @@
-# Detecting Local Patterns in LLM Output Errors
+# Detecting Local Patterns in LLM Performance Battles
 
 The objective here is to detect patterns in LLM output errors.
 
@@ -11,6 +11,29 @@ The approach I will take is to port work already done in exploratory spatial
 data analysis to the LLM domain -- more specifically work on local indicators
 of spatial association (LISAs). The idea is to use clustering algorithms to
 group similar errors together, and then label them to make them interpretable.
+
+## References:
+
+-   [Local Indicators of Spatial Association—LISA[(https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.x)
+
+Elo Uncovered: Robustness and Best Practices in Language Model Evaluation
+https://arxiv.org/abs/2311.17295
+
+Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference
+https://arxiv.org/html/2403.04132v1
+
+am-ELO: A Stable Framework for Arena-based LLM Evaluation
+https://www.arxiv.org/pdf/2505.03475#
+
+_TextClass Benchmark: A Continuous Elo Rating of LLMs in Social Sciences_
+Author: Bastián González-Bustamante
+Published: November 30, 2024
+Summary: This work introduces the TextClass Benchmark, an ongoing evaluation framework that employs a tailored Elo rating system to assess LLMs on text classification tasks across various social science domains and languages. The benchmark updates ratings continuously, incorporating new models and test sets to evaluate generalization capabilities.
+https://arxiv.org/abs/2412.00539?utm_source=chatgpt.com
+https://github.com/bgonzalezbustamante/TextClass-Benchmark
+https://textclass-benchmark.com/
+
+-   [Elo rating of local contextual patterns](https://colab.ws/articles/10.1109%2FCCDC.2011.5968634)
 
 ## Appendix -- Very rough notes to self
 
