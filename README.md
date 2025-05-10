@@ -15,7 +15,7 @@ This might be useful for two reasons:
 
 The approach I will take is to port work already done in exploratory spatial
 data analysis to the LLM domain -- more specifically work on local indicators
-of spatial association ([Local Indicators of Spatial Association—LISA](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338)).
+of spatial association ([Local Indicators of Spatial Association—LISA](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.x)).
 
 ### basic idea with using LLM Arena's ELO data
 
