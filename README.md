@@ -51,6 +51,6 @@ https://lmarena.ai/?leaderboard
 Code to reproduce the leaderboard:
 https://colab.research.google.com/drive/1KdwokPjirkTmpO_P1WByFNFiqxWQquwH
 
-## LOOK AT THIS!!!!
+## This data might be better....
 
 https://github.com/VILA-Lab/Open-LLM-Leaderboard?utm_source=chatgpt.com
