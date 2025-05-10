@@ -11,15 +11,18 @@ The approach I will take is to port work aleady down in exploratory spatial
 data analysis to the LLM domain. The idea is to use clustering algorithms to
 group similar errors together, and then label them to make them interpretable.
 
-## Appendix -- Very rough notes to self -- 3 candidate datasets source???
+## Appendix -- Very rough notes to self
 
-### DATA 1: LLM Arena - ELO rating -- head to head battles
+### Source data candidates
+
+#### Option 1 data source: LLM Arena - ELO rating -- head to head battles
 
 #### basic idea with this data
 
-% wins on the question
-see where % wins on question and question type are correlated
-name clusters
+-   get % battle wins for each model for each question
+-   see where % wins on 'clustered questions' are correlated
+-   use LLM to name these clusters
+-   write a report on the patterns...disaggregate, more nuanced performance comparisons
 
 https://github.com/lm-sys/FastChat/blob/main/docs/dataset_release.md
 https://huggingface.co/datasets/lmsys/mt_bench_human_judgments/viewer/default/human?p=4
@@ -27,13 +30,13 @@ https://lmarena.ai/?leaderboard
 Code to reproduce the leaderboard:
 https://colab.research.google.com/drive/1KdwokPjirkTmpO_P1WByFNFiqxWQquwH
 
-#### Data 2: Hugging Face, Open LLM Leaderboard v2 Data
+#### Option 2 data source: Hugging Face, Open LLM Leaderboard v2 Data
 
 the main open-llm-leaderboard/contents is an aggregation of the open-llm-leaderboard-old/results.
 
 dataset contains per-model result files (JSON) with detailed outputs across tasks.
 
-#### Data 3: Hugging Face, Open LLM Leaderboard v2 Data
+#### Option 3 data source: Hugging Face, Open LLM Leaderboard v2 Data
 
 https://huggingface.co/datasets/open-llm-leaderboard/results
 
