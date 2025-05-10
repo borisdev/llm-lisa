@@ -13,7 +13,7 @@ group similar errors together, and then label them to make them interpretable.
 
 ## Appendix -- Very rough notes to self
 
-### Hugging Face Open‐LLM‐Leaderboard Datasets
+#### Hugging Face, Open LLM Leaderboard v2 Data
 
 the main open-llm-leaderboard/contents is an aggregation of the open-llm-leaderboard-old/results.
 
