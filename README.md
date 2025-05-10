@@ -1,11 +1,11 @@
 # Detecting Local Patterns in LLM Performance Battles
 
-The objective here is to detect patterns in LLM output errors.
+The objective here is to detect patterns in LLM performance.
 
 This might be useful for two reasons:
 
--   make more nuanced performance comparisons between models
--   make more strategic decisions in feeding high impact examples to fine-tune a LLM
+-   revealing local patterns can give allow model users to make more nuanced performance comparisons between models that are more directly relevant to their specific user priority concerns.
+-   local patterns of performance can allow model developers to make more strategic decisions in feeding high impact examples to fine-tune a LLM
 
 The approach I will take is to port work already done in exploratory spatial
 data analysis to the LLM domain -- more specifically work on local indicators
