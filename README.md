@@ -36,20 +36,19 @@ https://textclass-benchmark.com/
 
 -   [Elo rating of local contextual patterns](https://colab.ws/articles/10.1109%2FCCDC.2011.5968634)
 
-#### Data source: LLM Arena - ELO rating -- head to head battles
-
-#### basic idea with this data
+#### basic idea with using LLM Arena's ELO data
 
 -   get % battle wins for each model for each question
 -   see where % wins on 'clustered questions' are correlated
 -   use LLM to name these clusters
 -   write a report on the patterns...disaggregate, more nuanced performance comparisons
 
-https://github.com/lm-sys/FastChat/blob/main/docs/dataset_release.md
-https://huggingface.co/datasets/lmsys/mt_bench_human_judgments/viewer/default/human?p=4
-https://lmarena.ai/?leaderboard
-Code to reproduce the leaderboard:
-https://colab.research.google.com/drive/1KdwokPjirkTmpO_P1WByFNFiqxWQquwH
+#### Data source: LLM Arena - ELO rating -- head to head battles
+
+-   https://github.com/lm-sys/FastChat/blob/main/docs/dataset_release.md
+-   https://huggingface.co/datasets/lmsys/mt_bench_human_judgments/viewer/default/human?p=4
+-   https://lmarena.ai/?leaderboard
+-   Code to reproduce the leaderboard, https://colab.research.google.com/drive/1KdwokPjirkTmpO_P1WByFNFiqxWQquwH
 
 ## This data might be better....
 
