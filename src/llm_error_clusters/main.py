@@ -13,6 +13,14 @@ dataset = load_dataset("imdb", split="train[:1%]")  # Loads 1% of the training d
 # Print some examples
 print(dataset)
 print(dataset[0])
+# https://github.com/VILA-Lab/Open-LLM-Leaderboard?utm_source=chatgpt.com
+benchmark_name = "Open-Style/Open-LLM-Benchmark"
+gpt4_outputs = load_dataset("Open-Style/Open-LLM-Benchmark", "gpt4")
+print(f"Benchmark: {benchmark_name}")
+print(gpt4_outputs)
+
+gpt4_outputs = load_dataset("Open-Style/Open-LLM-Benchmark", "gpt4")
+print(gpt4_outputs)
 #
 # print([dataset.id for dataset in list_datasets()])
 #
