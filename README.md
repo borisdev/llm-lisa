@@ -14,7 +14,7 @@ group similar errors together, and then label them to make them interpretable.
 
 ## References:
 
--   [Local Indicators of Spatial Association—LISA[(https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.x)
+-   [Local Indicators of Spatial Association—LISA](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.)
 
 Elo Uncovered: Robustness and Best Practices in Language Model Evaluation
 https://arxiv.org/abs/2311.17295
