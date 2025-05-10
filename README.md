@@ -9,12 +9,13 @@ This might be useful for two reasons:
 
 The approach I will take is to port work already done in exploratory spatial
 data analysis to the LLM domain -- more specifically work on local indicators
-of spatial association (LISAs). The idea is to use clustering algorithms to
-group similar errors together, and then label them to make them interpretable.
+of spatial association (LISAs).
 
 ## References:
 
 -   [Local Indicators of Spatial Association—LISA](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.)
+
+## Miscellaneous notes
 
 Elo Uncovered: Robustness and Best Practices in Language Model Evaluation
 https://arxiv.org/abs/2311.17295
@@ -50,6 +51,6 @@ https://lmarena.ai/?leaderboard
 Code to reproduce the leaderboard:
 https://colab.research.google.com/drive/1KdwokPjirkTmpO_P1WByFNFiqxWQquwH
 
-LOOK AT THIS!!!!
+## LOOK AT THIS!!!!
 
 https://github.com/VILA-Lab/Open-LLM-Leaderboard?utm_source=chatgpt.com
