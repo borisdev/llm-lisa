@@ -1,5 +1,5 @@
 [project]
-name = "llm-error-clusters"
+name = "llm-lisa"
 version = "0.1.0"
 description = ""
 authors = [

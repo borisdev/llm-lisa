@@ -1,7 +1,11 @@
+"""
+poetry run python -m pytest
+"""
+
 from datasets import \
     load_dataset  # HuggingFace community-driven open-source library of datasets
 
-from llm_error_clusters.main import main
+from llm_lisa.main import main
 
 
 def test_main():
