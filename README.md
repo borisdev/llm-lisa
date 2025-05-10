@@ -1,4 +1,4 @@
-# llm-error-clusters
+# Detecting Local Patterns in LLM Output Errors
 
 The objective here is to detect patterns in LLM output errors.
 
