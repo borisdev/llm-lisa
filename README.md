@@ -1,6 +1,6 @@
 # Detecting Local Patterns in LLM Performance Battles
 
-The objective here is to detect patterns in LLM performance.
+The objective here is to detect local patterns in LLM performance.
 
 This might be useful for two reasons:
 
