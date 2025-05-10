@@ -5,7 +5,7 @@ The objective here is to detect patterns in LLM output errors.
 This might be useful for two reasons:
 
 -   make more nuanced performance comparisons between models
--   make more strategic decisions in what types of example to use for fine-tuning
+-   make more strategic decisions in feeding high impact examples to fine-tune a LLM
 
 The approach I will take is to port work aleady down in exploratory spatial
 data analysis to the LLM domain. The idea is to use clustering algorithms to
