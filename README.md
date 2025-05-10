@@ -7,8 +7,9 @@ This might be useful for two reasons:
 -   make more nuanced performance comparisons between models
 -   make more strategic decisions in feeding high impact examples to fine-tune a LLM
 
-The approach I will take is to port work aleady down in exploratory spatial
-data analysis to the LLM domain. The idea is to use clustering algorithms to
+The approach I will take is to port work already done in exploratory spatial
+data analysis to the LLM domain -- more specifically work on local indicators
+of spatial association (LISAs). The idea is to use clustering algorithms to
 group similar errors together, and then label them to make them interpretable.
 
 ## Appendix -- Very rough notes to self
