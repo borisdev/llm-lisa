@@ -1,3 +1,7 @@
+# Titles
+
+-   Local Hotspot Detection for LLM Evaluation with Getis–Ord G\*
+
 # Comparing LLMs with LISAs
 
 LISA stands for [Local Indicators of Spatial Association](https://onlinelibrary.wiley.com/doi/10.1111/j.1538-4632.1995.tb00338.x).
