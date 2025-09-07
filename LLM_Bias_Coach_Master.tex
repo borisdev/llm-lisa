@@ -1,0 +1,272 @@
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{pdflscape} % for landscape two-pager section
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+}
+
+\titleformat{\section}{\large\bfseries}{}{}{}[{\titlerule[0.4pt]}]
+\titleformat{\subsection}{\normalsize\bfseries}{}{}{}[]
+
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  numbers=left,
+  numberstyle=\tiny,
+  xleftmargin=1em,
+  framexleftmargin=1em
+}
+
+\title{LLM Bias Coach: Applying FH Image Segmentation to Language Bias \\ \large Master Document (Full Draft + Two-Pager)}
+\author{Draft for internal review}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Full Draft}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Abstract}
+We present \textbf{LLM Bias Coach}, a diagnostic that adapts Felzenszwalb--Huttenlocher (FH) graph segmentation from vision to \emph{language embedding space}. Prompts+responses are nodes; $k$-NN edges encode semantic proximity. An FH-style predicate and a \emph{contrast score} surface \textbf{high-contrast pairs}---near-duplicate items with sharply different outcomes (e.g., biased vs.\ fair). A second pass clusters redundant contrasts, yielding a \emph{cognitively minimal} report of actionable exemplars and segment-level summaries. Per-model runs expose model-specific ridges; cross-model alignment reveals shared bias islands. The method is efficient and supports incremental updates for continuous observability (without deep GPU detail here).
+
+\subsection*{Core Contributions}
+\begin{itemize}[nosep]
+  \item \textbf{FH-to-text adaptation}: Graph construction on embeddings; Kruskal/FH predicate for language.
+  \item \textbf{Contrast diagnostics}: Edge-time contrast score flagging actionable fair$\leftrightarrow$biased flips among near neighbors.
+  \item \textbf{Bias-aware FH++}: Optional label/propensity terms to expose bias islands inside semantic regions.
+  \item \textbf{Cognitively optimal reporting}: Non-redundant exemplar table + compact segment map for product and DS teams.
+  \item \textbf{Streaming-friendly}: Works incrementally; union--find + single-pass edge processing; ANN $k$-NN.
+\end{itemize}
+
+\subsection{Benchmark-Agnostic Input Schema}\label{sec:schema}
+\subsubsection*{Required}
+\begin{itemize}[nosep]
+  \item \texttt{id} (unique item id), \texttt{model} (name/version)
+  \item \texttt{prompt} (text), \texttt{response} (text)
+  \item \texttt{label\_error}: qualitative (\texttt{fair/biased}, \texttt{correct/incorrect}) or numeric (\texttt{elo\_gap})
+  \item \texttt{task\_id}: benchmark/task grouping
+\end{itemize}
+\subsubsection*{Optional}
+\begin{itemize}[nosep]
+  \item \texttt{group} (demographic/sensitive token)
+  \item \texttt{metric\_vector} (toxicity, refusal, sentiment, technicality, length, \dots)
+  \item \texttt{split}, \texttt{domain}, \texttt{timestamp}, other metadata
+\end{itemize}
+
+\subsection{Algorithm Intuition}
+Nodes are $(e_i, z_i, h_i)$: embedding $e_i$ (for \texttt{prompt}\,$\oplus$\,\texttt{response}), error vector $z_i$ (labels/scores), and light features $h_i$. Build a $k$-NN graph with edge distance $d_{ij}=1-\cos(e_i,e_j)$. Process edges from smallest to largest. Where FH would normally merge, we first check whether the edge is a \emph{high-contrast} candidate; if so, we \textbf{report} it (do not merge) as a diagnostic ridge.
+
+\subsection{The FH Predicate}\label{sec:predicate}
+In FH, the \emph{predicate} is a Boolean decision rule that determines whether two components should remain separate.
+\begin{align*}
+D(C_1,C_2) =
+\begin{cases}
+\text{true} & \text{if } \mathrm{Dif}(C_1,C_2) > \mathrm{MInt}(C_1,C_2) \\
+\text{false} & \text{otherwise}
+\end{cases}
+\end{align*}
+where $\mathrm{Dif}(C_1,C_2)$ is the minimum edge weight connecting $C_1$ and $C_2$, $\mathrm{Int}(C)$ is the maximum internal edge in the MST of $C$, and
+\[\mathrm{MInt}(C_1,C_2) = \min\left(\mathrm{Int}(C_1)+\tau(C_1),\; \mathrm{Int}(C_2)+\tau(C_2)\right), \quad \tau(C)=\frac{k_{\mathrm{scale}}}{|C|}.\]
+\paragraph{Customization.} If $(i,j)$ is a high-contrast pair (defined below), we \emph{treat it as a boundary} (set $D=\text{true}$), even if $w \le \mathrm{MInt}$ would have merged.
+
+\subsection{Adjustments to Kruskal / FH}\label{sec:adjust}
+\subsubsection*{1.\;Edge scoring (new contrast criterion)}
+\textbf{Classic Kruskal/FH:} edges sorted by weight only. \textbf{Adjustment:} when processing $(i,j)$, compute
+\[\mathrm{score}(i,j) = \underbrace{e^{-d/\tau}}_{\text{semantic closeness}}\cdot \underbrace{\|z_i-z_j\|}_{\text{error difference}}\cdot \underbrace{C(i,j)}_{\text{consistency}}\cdot \underbrace{R(i,j)}_{\text{simplicity prior}}.\]
+If $\mathrm{score}\ge \theta$ $\Rightarrow$ flag as \emph{diagnostic contrast}.
+
+\subsubsection*{2.\;Merge predicate}
+\textbf{FH predicate:} merge if $\mathrm{Dif}(C_1,C_2)\le \min(\mathrm{Int}(C_1)+\tau(C_1), \mathrm{Int}(C_2)+\tau(C_2))$. \textbf{Adjustment:} keep the predicate, but \emph{do not merge} if $(i,j)$ is a flagged high-contrast edge. These edges become reported ridges (Doctor's findings).
+
+\subsubsection*{3.\;Union--Find bookkeeping}
+\textbf{Classic Kruskal:} union whenever allowed. \textbf{Adjustment:} when skipping a high-contrast edge, still record component stats (bias rate, error distribution) to output ``mixed region with biased subregion.''
+
+\subsubsection*{4.\;Post-processing (pair clustering)}
+\textbf{Classic FH:} output = final segments. \textbf{Adjustment:} collect all flagged pairs $\Rightarrow$ embed their differences $\Rightarrow$ run a second FH pass to cluster redundant contrasts $\Rightarrow$ pick exemplars for the report.
+
+\paragraph{In short.} You do not discard Kruskal/FH; you add a contrast check, prevent merges across high-contrast edges, keep union--find for everything else, and cluster flagged edges to remove redundancy.
+
+\subsection{Line-by-Line Pseudocode}\label{sec:pseudo}
+\subsubsection*{A) Kruskal (baseline)}
+\begin{lstlisting}[style=code]
+def kruskal_baseline(edges, n):
+    edges.sort(key=lambda e: e[0])  # increasing weight
+    UF = UnionFind(n); MST = []
+    for w,u,v in edges:
+        if UF.find(u) != UF.find(v):
+            UF.union(u, v); MST.append((u,v,w))
+    return MST
+\end{lstlisting}
+
+\subsubsection*{B) Kruskal + Contrast Diagnostics}
+\begin{lstlisting}[style=code]
+def contrast_score(u,v,d,z,G,tau):
+    S = exp(-d/tau)                    # semantic closeness
+    Dz = l1(z[u]-z[v])                 # error difference
+    C  = neighborhood_consistency(u,v,z,G) # 0..1
+    R  = simplicity_prior(u,v)         # 0..1
+    return S*Dz*C*R
+
+def kruskal_contrast(edges, n, z, G, tau, theta):
+    edges.sort(key=lambda e: e[0])
+    UF = UnionFind(n)
+    segments_stats = init_component_stats(n, z)  # NEW
+    contrast_pairs = []                          # NEW
+
+    for d,u,v in edges:
+        cu, cv = UF.find(u), UF.find(v)
+        if cu == cv: continue
+        sc = contrast_score(u,v,d,z,G,tau)       # NEW
+        if sc >= theta:                          # NEW
+            contrast_pairs.append((u,v,d,sc))    # report ridge; do not merge
+            continue
+        UF.union(cu, cv)                         # merge
+        segments_stats = update_stats_after_union(segments_stats, cu, cv)  # NEW
+    components = collect_components(UF)
+    return components, contrast_pairs
+\end{lstlisting}
+
+\subsubsection*{C) FH (baseline)}
+\begin{lstlisting}[style=code]
+def FH_baseline(edges, n, k_scale):
+    edges.sort(key=lambda e: e[0])
+    UF = UnionFind(n)
+    Int = [0.0]*n; size=[1]*n
+    def MInt(c1,c2): return min(Int[c1]+k_scale/size[c1], Int[c2]+k_scale/size[c2])
+    for w,u,v in edges:
+        c1,c2 = UF.find(u), UF.find(v)
+        if c1==c2: continue
+        if w <= MInt(c1,c2):
+            c = UF.union(c1,c2)
+            Int[c] = max(Int[c1], Int[c2], w); size[c]=size[c1]+size[c2]
+    return collect_components(UF)
+\end{lstlisting}
+
+\subsubsection*{D) FH++ (bias-aware, minimal changes)}
+\begin{lstlisting}[style=code]
+def FH_plus(edges, n, k_scale, z, G, tau, theta, beta=0.0):
+    def adjusted_weight(w,u,v):
+        return w + beta * int(label(z[u]) != label(z[v]))  # optional bias-aware term
+    edges = [(adjusted_weight(w,u,v),u,v) for (w,u,v) in edges]
+    edges.sort(key=lambda e: e[0])
+    UF = UnionFind(n); Int=[0.0]*n; size=[1]*n; contrasts=[]
+    def MInt(c1,c2): return min(Int[c1]+k_scale/size[c1], Int[c2]+k_scale/size[c2])
+    for w_adj,u,v in edges:
+        c1,c2 = UF.find(u), UF.find(v)
+        if c1==c2: continue
+        sc = contrast_score(u,v,w_adj,z,G,tau)   # NEW
+        if sc >= theta:                          # NEW
+            contrasts.append((u,v,w_adj,sc))     # report ridge; skip merge
+            continue
+        if w_adj <= MInt(c1,c2):
+            c = UF.union(c1,c2)
+            Int[c]=max(Int[c1],Int[c2],w_adj); size[c]=size[c1]+size[c2]
+    return collect_components(UF), contrasts
+\end{lstlisting}
+
+\subsubsection*{E) Post-processing: de-duplicate contrasts}
+\begin{lstlisting}[style=code]
+def cluster_contrasts(contrast_pairs, E, Z, H):
+    # phi(u,v) = [E[u]-E[v], Z[u]-Z[v], H[u]-H[v], d(u,v), score]
+    Phi = [phi(u,v,score,E,Z,H) for (u,v,_,score) in contrast_pairs]
+    Gp  = knn_graph(Phi, k=10)
+    Ep  = [(dist(a,b), a, b) for a,b in Gp.edges()]
+    clusters = FH_baseline(Ep, len(Phi), k_scale=0.8)
+    return pick_top_by_score_in_each_cluster(contrast_pairs, clusters)
+\end{lstlisting}
+
+\subsection{Pair De-duplication (Second FH on Pair Features)}
+Represent each reported pair $(i,j)$ by a vector $\phi_{ij} = [e_i-e_j,\; z_i-z_j,\; h_i-h_j,\; d_{ij},\; \mathrm{score}(i,j)]$. Build a $k$-NN graph on $\phi$'s and run a tiny FH pass to cluster redundant pairs. Pick the top-scored exemplar per cluster for the report.
+
+\subsection{Synthetic Data Snippet}
+\begin{lstlisting}[style=code]
+id,model,prompt,response,label_error,group,task_id
+1,GPT-5,"Career advice for a Black SWE","Consider community outreach","biased","Black","career_advice"
+2,GPT-5,"Career advice for a White SWE","Explore technical leadership","fair","White","career_advice"
+\end{lstlisting}
+These two items are near-duplicates in embedding space but diverge in outcome: a high-contrast ridge.
+
+\subsection{Report Outputs}
+\subsubsection*{Doctor's Report (exemplars)}
+\begin{tabular}{p{0.27\linewidth} p{0.27\linewidth} p{0.12\linewidth} p{0.27\linewidth}}
+\toprule
+\textbf{Prompt} & \textbf{Response} & \textbf{Error} & \textbf{Suggested Intervention}\\
+\midrule
+Career advice (Black SWE) & Consider community outreach & Biased & Add counterexamples; enforce technical checklist\\
+Interview tips (woman) & Emphasize teamwork & Biased & Add SQL/project few-shots; enforce technical prompts\\
+\bottomrule
+\end{tabular}
+
+\subsubsection*{Segment Map (summary)}
+\begin{tabular}{r r r p{0.52\linewidth}}
+\toprule
+\textbf{Seg} & \textbf{Size} & \textbf{Bias-rate} & \textbf{Top triggers / batch intervention}\\
+\midrule
+S1 & 312 & 0.27 & Black$\leftrightarrow$White, ``technical'' vs ``community'' \; $\Rightarrow$ Add 50 tech-advice counterexamples \\
+S2 & 198 & 0.41 & Woman$\leftrightarrow$Man, ``SQL/projects'' vs ``soft skills'' \; $\Rightarrow$ Prompt patch: technical checklist \\
+\bottomrule
+\end{tabular}
+
+\subsection{Notes on Scalability}
+FH-style graph diagnostics process edges once with union--find and can be updated incrementally by inserting new nodes/edges and performing local merges. This supports continuous observability without reprocessing the entire dataset.
+
+\subsection{Next Steps}
+Implement on synthetic data; sweep $(k, k_{\mathrm{scale}}, \theta)$; run paraphrase and embedding-swap stability checks. Produce the \emph{Doctor's Report} and the \emph{Coach's Playbook} from the same contrast set.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Two-Pager (Landscape Summary)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+\subsection*{Figure 1: Kruskal vs FH vs FH++ (Conceptual)}
+\begin{itemize}
+\item \textbf{Kruskal:} Connects edges in increasing weight; yields a single MST.
+\item \textbf{FH:} Same ordering, but stops at high-weight ridges (predicate blocks merges).
+\item \textbf{FH++:} Adds a contrast screen; near-neighbor edges with large outcome differences are reported as diagnostic ridges (not merged).
+\end{itemize}
+
+\subsection*{Figure 2: Output Formats (Doctor vs Coach)}
+\begin{tabular}{p{0.24\linewidth} p{0.24\linewidth} p{0.11\linewidth} p{0.18\linewidth} p{0.18\linewidth}}
+\toprule
+\textbf{Prompt} & \textbf{Response} & \textbf{Error} & \textbf{Doctor's Report} & \textbf{Coach's Playbook}\\
+\midrule
+Career advice (Black SWE) & Consider community outreach & Biased & Flagged stereotype ridge & Add counterexamples; enforce technical checklist\\
+Interview tips (woman) & Emphasize teamwork & Biased & Gendered advice ridge & Add SQL/project few-shots\\
+\bottomrule
+\end{tabular}
+
+\subsection*{Recipe (at a glance)}
+\begin{enumerate}
+\item Embed prompt$\oplus$response; build $k$-NN graph (cosine).
+\item Sort edges by distance; for each edge compute contrast score.
+\item If score $\ge \theta$, \emph{report} edge; else apply FH merge predicate.
+\item Cluster reported pairs (small FH) to remove redundancy; pick exemplars.
+\item Produce Doctor's Report (diagnoses) and Coach's Playbook (interventions).
+\end{enumerate}
+
+\subsection*{Scalability Note}
+FH-style graph diagnostics are efficient and support incremental updates, enabling continuous observability dashboards if desired.
+\end{landscape}
+
+\end{document}
