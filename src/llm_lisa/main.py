@@ -1,3 +1,9 @@
+"""
+Example of loading and processing datasets using the `datasets` library.
+
+Check out Huggingface MCP server for more datasets?
+"""
+
 import logging
 
 from datasets import load_dataset, load_dataset_builder
