@@ -42,6 +42,7 @@ class Graph:
     # >>> g.kruskal()
     # >>> g.dystra()
     # >>> g.ph()
+    # >>> g.new_diagnostic()
     """
 
     def __init__(self, nodes: list[Node]):
